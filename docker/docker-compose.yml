@@ -1,0 +1,215 @@
+version: "3.9"
+
+x-common:
+  &common
+  image: ${AIRFLOW_IMAGE_NAME:-pyrequire_airflow:2.5.1W}
+  user: "${AIRFLOW_UID:-1000}:${AIRFLOW_GID:-0}"
+  env_file:
+    - .env
+  volumes:
+    - .:/usr/local/covid-app/src
+    - ../airflow/dags:/opt/airflow/dags
+    - ../airflow/logs:/opt/airflow/logs
+    - ../airflow/plugins:/opt/airflow/plugins
+    - ../covid-app/src:/covid-app/src
+    - /var/run/docker.sock:/var/run/docker.sock
+
+x-depends-on:
+  &depends-on
+  depends_on:
+    postgres:
+      condition: service_healthy
+    airflow-init:
+      condition: service_completed_successfully
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports:
+      - "5434:5432"
+    networks:
+      - bds-network
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 5s
+      retries: 5
+    env_file:
+      - .env
+
+  scheduler:
+    <<: *common
+    <<: *depends-on
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: on-failure
+    ports:
+      - "8793:8793"
+    networks:
+      - bds-network
+    environment:
+      - spark://spark-master:7077
+
+  webserver:
+    <<: *common
+    <<: *depends-on
+    container_name: airflow-webserver
+    restart: always
+    command: webserver
+    ports:
+      - "8280:8080"
+
+    networks:
+      - bds-network
+    environment:
+      - spark://spark-master:7077
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "--fail",
+          "http://localhost:8280/health"
+        ]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+
+  airflow-init:
+    <<: *common
+    container_name: airflow-init
+    networks:
+      - bds-network
+    entrypoint: /bin/bash
+    environment:
+      - spark://spark-master:7077
+    command:
+      - -c
+      - |
+        mkdir -p /sources/logs /sources/dags /sources/plugins
+        chown -R "${AIRFLOW_UID}:50000" /sources/{logs,dags,plugins}
+        exec /entrypoint airflow version
+
+  ####### HADOOP
+  hadoop-namenode:
+    container_name: hadoop-namenode
+    restart: always
+    build: ./hadoop/namenode
+    ports:
+      - 9870:9870
+      - 9000:9000
+    networks:
+      - bds-network
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop/hadoop.env
+
+  # hadoop-datanode:
+  #   container_name: hadoop-datanode
+  #   restart: always
+  #   build: ./hadoop/datanode
+  #   volumes:
+  #     - hadoop_datanode:/hadoop/dfs/data
+  #   networks:
+  #    - bds-network
+  #   environment:
+  #     SERVICE_PRECONDITION: "hadoop-namenode:9870"
+  #   env_file:
+  #     - ./hadoop/hadoop.env
+
+  hadoop-resourcemanager:
+    container_name: hadoop-resourcemanager
+    restart: always
+    build: ./hadoop/resourcemanager
+    networks:
+     - bds-network
+    environment:
+      SERVICE_PRECONDITION: "hadoop-namenode:9000 hadoop-namenode:9870 hadoop-datanode:9864"
+    env_file:
+      - ./hadoop/hadoop.env
+
+  hadoop-nodemanager-1:
+    container_name: hadoop-nodemanager-1
+    restart: always
+    build: ./hadoop/nodemanager
+    networks:
+     - bds-network
+    environment:
+      SERVICE_PRECONDITION: "hadoop-namenode:9000 hadoop-namenode:9870 hadoop-datanode:9864 hadoop-resourcemanager:8088"
+    env_file:
+      - ./hadoop/hadoop.env
+
+
+  ####### SPARK
+  spark-master:
+    build: ./spark/master
+    container_name: spark-master
+    ports:
+      - 8080:8080
+      - 7077:7077
+    networks:
+      - bds-network
+    volumes:
+      - shared-workspace:/opt/workspace
+      - ../covid-app/src:/covid-app/src
+
+  spark-worker-1:
+    build: ./spark/worker
+    container_name: spark-worker-1
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
+    ports:
+      - 8081:8081
+    networks:
+      - bds-network
+    volumes:
+      - shared-workspace:/opt/workspace
+      - ../covid-app/src:/covid-app/src
+
+    depends_on:
+      - spark-master
+
+  spark-worker-2:
+    build: ./spark/worker
+    container_name: spark-worker-2
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
+    networks:
+      - bds-network
+    ports:
+      - 8082:8081
+    volumes:
+      - shared-workspace:/opt/workspace
+      - ../covid-app/src:/covid-app/src
+
+    depends_on:
+      - spark-master
+
+####### JUPYTER
+  jupyter-notebook:
+    build: ./jupyter
+    container_name: jupyter-notebook
+    ports:
+      - 8888:8888
+      - 4040:4040
+    networks:
+     - bds-network
+    volumes:
+      - shared-workspace:/opt/workspace
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+  hadoop_historyserver:
+  shared-workspace:
+    name: "hadoop-distributed-file-system"
+    driver: local
+
+networks:
+  bds-network:
+    external: true
