@@ -11,25 +11,61 @@ Para iniciar os containers basta executar o comando 'make build' que carregara o
 * Hadoop HDFS:
 * Hadoop Yarn:
 
-
 ## Estrutura do projeto 
-    -GTF-PROCESSO
-    --airflow ('Responsável por carregar dags, logs e plugins a serem executadas')
-    ---dags
-    ----startProcessoRaw ('Inicia o processo acessado os arquivos da pasta covid-app')
-    ---logs
-    ---plugins
-    -covid-app (Projeto contendo o código para executar os processo)
-    --src
-    ---carga (Classes de execuções - responsável por executar e carregar dados tanto de fonte externa como para dentro do hdfs)
-    ----processaCovidRaw.py 
-    ----processaCovidTrusted.py
-    ----processaCovidRefined.py
-    ---utils (Classes responsáveis por requisiões de varios bloco de código )
-    ----connectionClass.py
-    ----functionClass.py
-    ---startProcessoRaw.py (Responsável por iniciar os códigos de processamento dos dados)
-    --src-test (Estrutura de teste )
+.
+├── airflow
+│   ├── dags
+│   │   └── startProcessoRaw.py
+│   ├── logs
+│   ├── plugis
+├── covid-app
+│   ├── src
+│   │   ├── carga
+│   │       │   ├── processaCovidRaw.py
+│   │       │   ├── processaCovidTrusted.py
+│   │       │   ├── processaCovidRefined.py
+│   │   ├── utils
+│   │       │   ├── connectionClass.py
+│   │       │   ├── functionClass.py
+│   │   ├── startProcesso.py
+│   ├── src-teste
+├── docker
+│   ├── airflow
+│   │   ├── Dockerfile
+│   ├── hadoop
+│   │   ├── base
+│   │       ├── Dockerfile
+│   │       ├── entrypoint.sh
+│   │   ├── datanode
+│   │       ├── Dockerfile
+│   │       ├── run.sh
+│   │   ├── historyserver
+│   │       ├── Dockerfile
+│   │       ├── run.sh
+│   │   ├── namenode
+│   │       ├── Dockerfile
+│   │       ├── run.sh
+│   │   ├── nodemanager
+│   │       ├── Dockerfile
+│   │       ├── run.sh
+│   │   ├── resourcemanager
+│   │       ├── Dockerfile
+│   │       ├── run.sh
+│   │   └── hadoop.env
+│   ├── jupyter
+│   │   ├── Dockerfile
+│   │   └── workspace
+│   └── spark
+│   │   ├── base
+│   │       ├── Dockerfile
+│   │   ├── master
+│   │       ├── Dockerfile
+│   │   ├── worker
+│   │       ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── Makefile
+├── README.md
+
 
 ## Processo de extração de informações
 #### Nesse projeto criei uma estrutura de armazenamento de arquivos direto no HDFS onde os dados seguem essa sequencia de ingestão e tratamentos
