@@ -67,7 +67,7 @@ Para iniciar os containers basta executar o comando 'make build' que carregara o
         ├── README.md
 
 
-## Processo de extração de informações
+## Processo de extração das informações
 #### Nesse projeto criei uma estrutura de armazenamento de arquivos direto no HDFS onde os dados seguem essa sequencia de ingestão e tratamentos
         1 raw
         2 trusted
@@ -75,9 +75,9 @@ Para iniciar os containers basta executar o comando 'make build' que carregara o
 
 
 ## diretório do projeto
-### covid-app
+#### covid-app
     Toda a estrutura do código esta dentro do diretorio covid-app, esse diretorio esta separada em algumas camadas como:
-      * src: raiz do arquivos principais
+      * src: raiz
       ** src/carga: Responsável por executar as rotinas de download dos arquivos, trativas e disponibilização para uso na refined seguindo a regra de negócio.
          *** processaCovidRaw.py
          *** processaCovidTrusted.py
