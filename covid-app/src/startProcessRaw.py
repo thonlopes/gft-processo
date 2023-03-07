@@ -1,6 +1,4 @@
 
-import sys
-import pyspark
 from carga.ProcessaCovidRaw import ProcessaCovidRaw
 
 def startProcess():

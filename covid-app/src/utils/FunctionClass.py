@@ -4,8 +4,8 @@ from pyspark.sql.functions  import *
 
 
 class FunctionClass():
-    def import_csv(self, spark, pthRaw, header, delimiter, encoding, campos, schema, db_nalysis
-                , id_chave, csvFile, nr_repartition=5, getItemFileName=3,dropDuplicate=True,have_dt_load=True):
+    def import_csv(self, spark, pthRaw, header, delimiter, encoding, campos, schema,
+                id_chave, csvFile, nr_repartition=5, getItemFileName=3,dropDuplicate=True,have_dt_load=True):
 
         try:
             #Valor vindo da assinatura do método

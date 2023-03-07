@@ -26,12 +26,12 @@ services:
       context: .
     command: webserver
     volumes:
-      - ../covid-app/src:../covid-app/src/
-      - ../covid-app/src/carga:../covid-app/src/carga/
-      - ../covid-app/src/utils:../covid-app/src/utils/
-      - ../airflow/dags:../airflow/dags
-      - ../airflow/logs:../airflow/logs
-      - ../airflow/plugins:../airflow/plugins
+      - ../covid-app/src:/covid-app/src/
+      - ../covid-app/src/carga:/covid-app/src/carga/
+      - ../covid-app/src/utils:/covid-app/src/utils/
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/logs:/opt/airflow/logs
+      - ../airflow/plugins:/opt/airflow/plugins
     ports:
       - 8280:8080
     networks:
@@ -57,12 +57,12 @@ services:
     networks:
       - bds-network
     volumes:
-      - ../covid-app/src:../covid-app/src/
-      - ../covid-app/src/carga:../covid-app/src/carga/
-      - ../covid-app/src/utils:../covid-app/src/utils/
-      - ../airflow/dags:../airflow/dags
-      - ../airflow/logs:../airflow/logs
-      - ../airflow/plugins:../airflow/plugins
+      - ../covid-app/src:/covid-app/src/
+      - ../covid-app/src/carga:/covid-app/src/carga/
+      - ../covid-app/src/utils:/covid-app/src/utils/
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/logs:/opt/airflow/logs
+      - ../airflow/plugins:/opt/airflow/plugins
     environment:
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -134,25 +134,19 @@ services:
       - bds-network
     volumes:
       - shared-workspace:/opt/workspace
-      - ../covid-app/src:/covid-app/src
-      - ../covid-app/src/carga:/covid-app/src/carga/
-      - ../covid-app/src/utils:/covid-app/src/utils/
 
   spark-worker-1:
     build: ./spark/worker
     container_name: spark-worker-1
     environment:
       - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=512m
+      - SPARK_WORKER_MEMORY=256m
     ports:
       - 8081:8081
     networks:
       - bds-network
     volumes:
       - shared-workspace:/opt/workspace
-      - ../covid-app/src:/covid-app/src
-      - ../covid-app/src/carga:/covid-app/src/carga/
-      - ../covid-app/src/utils:/covid-app/src/utils/
   
     depends_on:
       - spark-master
@@ -162,16 +156,13 @@ services:
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=512mm
+      - SPARK_WORKER_MEMORY=256m
     networks:
       - bds-network
     ports:
       - 8082:8081
     volumes:
       - shared-workspace:/opt/workspace
-      - ../covid-app/src:../covid-app/src
-      - ../covid-app/src/carga:../covid-app/src/carga/
-      - ../covid-app/src/utils:../covid-app/src/utils/
 
     depends_on:
       - spark-master

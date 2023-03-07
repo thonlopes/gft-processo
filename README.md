@@ -1,54 +1,38 @@
-# The largest heading
-## The second largest heading
-###### The smallest heading
+# GFT processo  - Serasa
+O objetivo desse ambiente é simular um processo de data lake, onde é feito a consultar aos dados externos (Nesse caso utlizei a fonte do governo: https://opendatasus.saude.gov.br/dataset/registro-de-ocupacao-hospitalar-covid-19), onde foi feito uma busca por arquivos no diretorio, executando o download do mesmo, enviando para o HDFS, e executando as tratativas dos dados para consultas futuras, mantendo historico dos mesmo 4
+
+Para iniciar os containers basta executar o comando 'make build' que carregara o arquivo na pasta docker
+
+## Projeto desenvolvido para apresentar uma estrutura de data lake, onde foram utlizados os seguintes recursos:
+* postgres: 
+* Airflow:
+* jupyter:
+* Spark:
+* Hadoop HDFS:
+* Hadoop Yarn:
 
 
-# Spyrk-cluster: um mini-laboratório de dados
-A ideia do projeto é montar um data lake com informações vindo de alguma base externa, seguindo o fluxo do dia a dia de uma area de engenharia de dados contemplando controle de código e teste.
+## Estrutura do projeto 
+    -GTF-PROCESSO
+    --airflow ('Responsável por carregar dags, logs e plugins a serem executadas')
+    ---dags
+    ----startProcessoRaw ('Inicia o processo acessado os arquivos da pasta covid-app')
+    ---logs
+    ---plugins
+    -covid-app (Projeto contendo o código para executar os processo)
+    --src
+    ---carga (Classes de execuções - responsável por executar e carregar dados tanto de fonte externa como para dentro do hdfs)
+    ----processaCovidRaw.py 
+    ----processaCovidTrusted.py
+    ----processaCovidRefined.py
+    ---utils (Classes responsáveis por requisiões de varios bloco de código )
+    ----connectionClass.py
+    ----functionClass.py
+    ---startProcessoRaw.py (Responsável por iniciar os códigos de processamento dos dados)
+    --src-test (Estrutura de teste )
 
-## Estrutura disponibilizasa em container docker contendo:
-
-1. Spark:3.0.0
-2. Hadoop:
-3. PostgreSql
-4. Airflow
-5. Jupyter Notebook
-
-## Iniciar container
-Execute `bash master-build.sh` para iniciar os containers.
-
-## Atualizando as dags 
-docker exec -it --user airflow airflow-scheduler bash -c "airflow dags list"
-docker build . --tag pyrequire_airflow:2.5.1
-
-
-### 
-
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-Purpose for this tutorial is to show how to get started with Hadoop, Spark and Jupyter for your BigData solution, deploy as Docker Containers.
-
-![Architecture overview][arch]
-
-## Pre-requisite
-- Only confirmed working on Linux/Windows (Apple Silicon might have issues).
-- Ensure Docker is installed.
-
-## Start
-
-Execute `bash master-build.sh` to start the the build and start the containers.
-
-### Hadoop
-Access Hadoop UI on ' http://localhost:9870 '
-
-### Spark
-Access Spark Master UI on ' http://localhost:8080 '
-
-### Jupyter
-Access Jupyter UI on ' http://localhost:8888 '
-
-
-### Airflow
-Access Jupyter UI on ' http://localhost:8280 '
+## Processo de extração de informações
+#### Nesse projeto criei uma estrutura de armazenamento de arquivos direto no HDFS onde os dados seguem essa sequencia de ingestão e tratamentos
+        1 raw
+        2 trusted
+        3 refined 

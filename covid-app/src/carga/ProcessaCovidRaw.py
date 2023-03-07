@@ -1,4 +1,3 @@
-#! /usr/bin/env /usr/local/bin/python3.3
 import os
 from pyspark.sql.types      import *
 from pyspark.sql            import SparkSession 
@@ -34,15 +33,18 @@ class ProcessaCovidRaw():
                 qtsAnos = 1
                 
                 try:
+                        hdfsNode = "hdfs://hadoop-namenode:9000/gft/"
+                        path_save = "raw/covid/"
+
                         ## CARREGA TODOS OS ARQUIVOS E DATAFRAMES 
                         for ano in range(qtsAnos):
                                 url  = str(urlGov) + dtFolderLoad +"/"+ csvName + str(ano) + ".csv"
-                                
+                                csvName = str(csvName + str(ano) + ".csv")
                                 if requests.get(url).status_code == 200:
                                 
                                         print("O servidor está disponível." + url)  
                                         spark.sparkContext.addFile(url)
-                                        df = spark.read.csv(SparkFiles.get(csvName + str(ano) + ".csv"),inferSchema=False, header=False,  sep =',',  multiLine=True)
+                                        df = spark.read.csv(SparkFiles.get(csvName),inferSchema=True, header=True,  sep =',',  multiLine=True)
                                 
                                         # df = df.withColumn('dtFolderLoad', dtFolderLoad)
                                         df = df.withColumn('dtLoadDate', current_date())
@@ -52,11 +54,9 @@ class ProcessaCovidRaw():
                                                 .partitionBy("dtLoadDate")\
                                                 .csv(hdfsNode + path_load)
                                         
-                                      
                                 else: 
                                         print("O servidor está indisponível.") 
                         spark.stop()
-
                 except Exception as e:
                         erro = str(e)
                         print(erro)
