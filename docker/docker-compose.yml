@@ -1,95 +1,76 @@
 version: "3.9"
 
-x-common:
-  &common
-  image: ${AIRFLOW_IMAGE_NAME:-pyrequire_airflow:2.5.1W}
-  user: "${AIRFLOW_UID:-1000}:${AIRFLOW_GID:-0}"
-  env_file:
-    - .env
-  volumes:
-    - .:/usr/local/covid-app/src
-    - ../airflow/dags:/opt/airflow/dags
-    - ../airflow/logs:/opt/airflow/logs
-    - ../airflow/plugins:/opt/airflow/plugins
-    - ../covid-app/src:/covid-app/src
-    - /var/run/docker.sock:/var/run/docker.sock
-
-x-depends-on:
-  &depends-on
-  depends_on:
-    postgres:
-      condition: service_healthy
-    airflow-init:
-      condition: service_completed_successfully
-
 services:
   postgres:
-    image: postgres:13
-    container_name: postgres
+    image: postgres:10
     ports:
-      - "5434:5432"
-    networks:
-      - bds-network
+      - 5432:5432
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-local-db-volume:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
       retries: 5
-    env_file:
-      - .env
-
-  scheduler:
-    <<: *common
-    <<: *depends-on
-    container_name: airflow-scheduler
-    command: scheduler
-    restart: on-failure
-    ports:
-      - "8793:8793"
     networks:
       - bds-network
-    environment:
-      - spark://spark-master:7077
-
-  webserver:
-    <<: *common
-    <<: *depends-on
-    container_name: airflow-webserver
     restart: always
+
+  airflow-webserver:
+    image: airflow-base
+    build:
+      dockerfile: ./airflow/Dockerfile
+      context: .
     command: webserver
+    volumes:
+      - ../covid-app/src:../covid-app/src/
+      - ../covid-app/src/carga:../covid-app/src/carga/
+      - ../covid-app/src/utils:../covid-app/src/utils/
+      - ../airflow/dags:../airflow/dags
+      - ../airflow/logs:../airflow/logs
+      - ../airflow/plugins:../airflow/plugins
     ports:
-      - "8280:8080"
-
+      - 8280:8080
     networks:
       - bds-network
     environment:
-      - spark://spark-master:7077
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "--fail",
-          "http://localhost:8280/health"
-        ]
-      interval: 30s
-      timeout: 30s
-      retries: 5
-
-  airflow-init:
-    <<: *common
-    container_name: airflow-init
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: 'airflow'
+      _AIRFLOW_WWW_USER_PASSWORD: 'airflow'
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    restart: always
+  
+  airflow-scheduler:
+    image: airflow-base
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: scheduler
     networks:
       - bds-network
-    entrypoint: /bin/bash
+    volumes:
+      - ../covid-app/src:../covid-app/src/
+      - ../covid-app/src/carga:../covid-app/src/carga/
+      - ../covid-app/src/utils:../covid-app/src/utils/
+      - ../airflow/dags:../airflow/dags
+      - ../airflow/logs:../airflow/logs
+      - ../airflow/plugins:../airflow/plugins
     environment:
-      - spark://spark-master:7077
-    command:
-      - -c
-      - |
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:50000" /sources/{logs,dags,plugins}
-        exec /entrypoint airflow version
-
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    restart: always
+  
   ####### HADOOP
   hadoop-namenode:
     container_name: hadoop-namenode
@@ -107,18 +88,18 @@ services:
     env_file:
       - ./hadoop/hadoop.env
 
-  # hadoop-datanode:
-  #   container_name: hadoop-datanode
-  #   restart: always
-  #   build: ./hadoop/datanode
-  #   volumes:
-  #     - hadoop_datanode:/hadoop/dfs/data
-  #   networks:
-  #    - bds-network
-  #   environment:
-  #     SERVICE_PRECONDITION: "hadoop-namenode:9870"
-  #   env_file:
-  #     - ./hadoop/hadoop.env
+  hadoop-datanode:
+    container_name: hadoop-datanode
+    restart: always
+    build: ./hadoop/datanode
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    networks:
+     - bds-network
+    environment:
+      SERVICE_PRECONDITION: "hadoop-namenode:9870"
+    env_file:
+      - ./hadoop/hadoop.env
 
   hadoop-resourcemanager:
     container_name: hadoop-resourcemanager
@@ -142,7 +123,6 @@ services:
     env_file:
       - ./hadoop/hadoop.env
 
-
   ####### SPARK
   spark-master:
     build: ./spark/master
@@ -155,6 +135,8 @@ services:
     volumes:
       - shared-workspace:/opt/workspace
       - ../covid-app/src:/covid-app/src
+      - ../covid-app/src/carga:/covid-app/src/carga/
+      - ../covid-app/src/utils:/covid-app/src/utils/
 
   spark-worker-1:
     build: ./spark/worker
@@ -169,7 +151,9 @@ services:
     volumes:
       - shared-workspace:/opt/workspace
       - ../covid-app/src:/covid-app/src
-
+      - ../covid-app/src/carga:/covid-app/src/carga/
+      - ../covid-app/src/utils:/covid-app/src/utils/
+  
     depends_on:
       - spark-master
 
@@ -178,14 +162,16 @@ services:
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=512m
+      - SPARK_WORKER_MEMORY=512mm
     networks:
       - bds-network
     ports:
       - 8082:8081
     volumes:
       - shared-workspace:/opt/workspace
-      - ../covid-app/src:/covid-app/src
+      - ../covid-app/src:../covid-app/src
+      - ../covid-app/src/carga:../covid-app/src/carga/
+      - ../covid-app/src/utils:../covid-app/src/utils/
 
     depends_on:
       - spark-master
@@ -203,6 +189,7 @@ services:
       - shared-workspace:/opt/workspace
 
 volumes:
+  airflow-local-db-volume:
   hadoop_namenode:
   hadoop_datanode:
   hadoop_historyserver:

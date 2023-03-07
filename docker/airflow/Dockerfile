@@ -1,40 +1,58 @@
 FROM apache/airflow:2.5.1
-USER root
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    openjdk-11-jre-headless \
-    && apt-get autoremove -yqq --purge \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-USER airflow
-RUN pip install --no-cache-dir apache-airflow-providers-docker==2.5.1
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-RUN pip install --no-cache-dir apache-airflow-providers-apache-spark==2.1.3
-
-COPY requirements.txt /
-RUN pip install --no-cache-dir -r /requirements.txt
-
-ARG spark_version="3.0.0"
-ARG hadoop_version="3.2"
-ARG build_dat
 
 USER root
-RUN curl https://archive.apache.org/dist/spark/spark-${spark_version}/spark-${spark_version}-bin-hadoop${hadoop_version}.tgz -o spark.tgz && \
-    tar -xf spark.tgz && \
-    mv spark-${spark_version}-bin-hadoop${hadoop_version} /usr/bin/ && \
-    echo "alias pyspark=/usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}/bin/pyspark" >> ~/.bashrc && \
-    echo "alias spark-shell=/usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}/bin/spark-shell" >> ~/.bashrc && \
-    mkdir /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}/logs && \
-    rm spark.tgz
 
-ENV SPARK_HOME /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}
-ENV SPARK_MASTER_HOST spark-master
-ENV SPARK_MASTER_PORT 7077
-ENV PYSPARK_PYTHON python3
+RUN apt-get update && apt-get install -y openjdk-11-jre-headless openjdk-11-jdk-headless ca-certificates-java curl
 
-RUN export JAVA_HOME
-RUN export SPARK_HOME
-RUN export PYSPARK_PYTHON
-WORKDIR ${SPARK_HOME}
+# INSTALL APACHE HADOOP
+ENV JAVA_HOME "/usr/lib/jvm/java-11-openjdk-amd64"
+ARG HADOOP_VERSION="3.2.1"
+ENV HADOOP_HOME "/opt/hadoop"
+RUN curl https://archive.apache.org/dist/hadoop/core/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz \
+    | tar xz -C /opt && mv /opt/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
+ENV HADOOP_COMMON_HOME "${HADOOP_HOME}"
+ENV HADOOP_CLASSPATH "${HADOOP_HOME}/share/hadoop/tools/lib/*"
+ENV HADOOP_CONF_DIR "${HADOOP_HOME}/etc/hadoop"
+ENV PATH "$PATH:${HADOOP_HOME}/bin"
+ENV HADOOP_OPTS "$HADOOP_OPTS -Djava.library.path=${HADOOP_HOME}/lib"
+ENV HADOOP_COMMON_LIB_NATIVE_DIR "${HADOOP_HOME}/lib/native"
+ENV YARN_CONF_DIR "${HADOOP_HOME}/etc/hadoop"
+
+# INSTALL APACHE SPARK
+ARG SPARK_VERSION="3.0.0"
+ARG PY4J_VERSION="0.10.9"
+ENV SPARK_HOME "/opt/spark"
+RUN curl https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz \
+    | tar xz -C /opt && mv /opt/spark-${SPARK_VERSION}-bin-without-hadoop ${SPARK_HOME}
+ENV PATH "$PATH:${SPARK_HOME}/bin"
+ENV LD_LIBRARY_PATH "${HADOOP_HOME}/lib/native"
+ENV SPARK_DIST_CLASSPATH "${HADOOP_HOME}/etc/hadoop\
+:${HADOOP_HOME}/share/hadoop/common/lib/*\
+:${HADOOP_HOME}/share/hadoop/common/*\
+:${HADOOP_HOME}/share/hadoop/hdfs\
+:${HADOOP_HOME}/share/hadoop/hdfs/lib/*\
+:${HADOOP_HOME}/share/hadoop/hdfs/*\
+:${HADOOP_HOME}/share/hadoop/yarn/lib/*\
+:${HADOOP_HOME}/share/hadoop/yarn/*\
+:${HADOOP_HOME}/share/hadoop/mapreduce/lib/*\
+:${HADOOP_HOME}/share/hadoop/mapreduce/*\
+:${HADOOP_HOME}/share/hadoop/tools/lib/*\
+:${HADOOP_HOME}/contrib/capacity-scheduler/*.jar"
+ENV PYSPARK_PYTHON "/usr/local/bin/python"
+ENV PYTHONPATH "${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-${PY4J_VERSION}-src.zip:${PYTHONPATH}"
+ENV SPARK_OPTS "--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info"
 
 USER airflow
+# INSTALL YOUR OWN LIBS
+RUN pip install pyspark==3.0.0
+RUN pip install findspark
+RUN pip install xlrd
+RUN pip install azure-datalake-store
+RUN pip install pyarrow
+RUN pip install 'apache-airflow[apache.spark]'
+
+USER airflow
+WORKDIR /covid-app/src
+
+RUN pip install --user numpy
+RUN pip install --user pandas

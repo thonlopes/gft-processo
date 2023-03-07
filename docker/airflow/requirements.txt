@@ -1,4 +1,2 @@
-pyspark==3.0.0
-SQLAlchemy
-wtforms
-findspark 
+pyspark
+requests
