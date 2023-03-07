@@ -79,14 +79,14 @@ Para iniciar os containers basta executar o comando 'make build' que carregara o
     Toda a estrutura do código esta dentro do diretorio covid-app, esse diretorio esta separada em algumas camadas como:
       * src: raiz do arquivos principais
       ** src/carga: Responsável por executar as rotinas de download dos arquivos, trativas e disponibilização para uso na refined seguindo a regra de negócio.
-      *** src/carga/processaCovidRaw.py
-      *** src/carga/processaCovidTrusted.py
-      *** src/carga/processaCovidRefined.py
+         *** processaCovidRaw.py
+         *** processaCovidTrusted.py
+         *** processaCovidRefined.py
      
       ** src/utils: Responsável por executar funções padrões como: iniciar sessão do spark, leitura de arquivos, e gravação no hdfs, podendo inserir mais funções seguindo padrões.
-      ** src/utils/connectionClass.py:
-      ** src/utils/functionClass.py:
+         *** connectionClass.py:
+         *** functionClass.py:
 
       ** startProcesso.py - Responsável por exeuctar o processo de ponta a ponta, fazendo as chamadas as funcções na pasta carga.
-      
+
       * src-teste: raiz dos arquivos de teste
