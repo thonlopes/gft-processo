@@ -11,60 +11,60 @@ Para iniciar os containers basta executar o comando 'make build' que carregara o
 * Hadoop HDFS:
 * Hadoop Yarn:
 
-## Estrutura do projeto 
-.
-├── airflow
-│   ├── dags
-│   │   └── startProcessoRaw.py
-│   ├── logs
-│   ├── plugis
-├── covid-app
-│   ├── src
-│   │   ├── carga
-│   │       │   ├── processaCovidRaw.py
-│   │       │   ├── processaCovidTrusted.py
-│   │       │   ├── processaCovidRefined.py
-│   │   ├── utils
-│   │       │   ├── connectionClass.py
-│   │       │   ├── functionClass.py
-│   │   ├── startProcesso.py
-│   ├── src-teste
-├── docker
-│   ├── airflow
-│   │   ├── Dockerfile
-│   ├── hadoop
-│   │   ├── base
-│   │       ├── Dockerfile
-│   │       ├── entrypoint.sh
-│   │   ├── datanode
-│   │       ├── Dockerfile
-│   │       ├── run.sh
-│   │   ├── historyserver
-│   │       ├── Dockerfile
-│   │       ├── run.sh
-│   │   ├── namenode
-│   │       ├── Dockerfile
-│   │       ├── run.sh
-│   │   ├── nodemanager
-│   │       ├── Dockerfile
-│   │       ├── run.sh
-│   │   ├── resourcemanager
-│   │       ├── Dockerfile
-│   │       ├── run.sh
-│   │   └── hadoop.env
-│   ├── jupyter
-│   │   ├── Dockerfile
-│   │   └── workspace
-│   └── spark
-│   │   ├── base
-│   │       ├── Dockerfile
-│   │   ├── master
-│   │       ├── Dockerfile
-│   │   ├── worker
-│   │       ├── Dockerfile
-│   ├── docker-compose.yml
-│   ├── Makefile
-├── README.md
+## Árvore do diretório
+        .
+        ├── airflow
+        │   ├── dags
+        │   │   └── startProcessoRaw.py
+        │   ├── logs
+        │   ├── plugis
+        ├── covid-app
+        │   ├── src
+        │   │   ├── carga
+        │   │       │   ├── processaCovidRaw.py
+        │   │       │   ├── processaCovidTrusted.py
+        │   │       │   ├── processaCovidRefined.py
+        │   │   ├── utils
+        │   │       │   ├── connectionClass.py
+        │   │       │   ├── functionClass.py
+        │   │   ├── startProcesso.py
+        │   ├── src-teste
+        ├── docker
+        │   ├── airflow
+        │   │   ├── Dockerfile
+        │   ├── hadoop
+        │   │   ├── base
+        │   │       ├── Dockerfile
+        │   │       ├── entrypoint.sh
+        │   │   ├── datanode
+        │   │       ├── Dockerfile
+        │   │       ├── run.sh
+        │   │   ├── historyserver
+        │   │       ├── Dockerfile
+        │   │       ├── run.sh
+        │   │   ├── namenode
+        │   │       ├── Dockerfile
+        │   │       ├── run.sh
+        │   │   ├── nodemanager
+        │   │       ├── Dockerfile
+        │   │       ├── run.sh
+        │   │   ├── resourcemanager
+        │   │       ├── Dockerfile
+        │   │       ├── run.sh
+        │   │   └── hadoop.env
+        │   ├── jupyter
+        │   │   ├── Dockerfile
+        │   │   └── workspace
+        │   └── spark
+        │   │   ├── base
+        │   │       ├── Dockerfile
+        │   │   ├── master
+        │   │       ├── Dockerfile
+        │   │   ├── worker
+        │   │       ├── Dockerfile
+        │   ├── docker-compose.yml
+        │   ├── Makefile
+        ├── README.md
 
 
 ## Processo de extração de informações
