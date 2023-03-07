@@ -40,7 +40,7 @@ ENV SPARK_DIST_CLASSPATH "${HADOOP_HOME}/etc/hadoop\
 :${HADOOP_HOME}/contrib/capacity-scheduler/*.jar"
 ENV PYSPARK_PYTHON "/usr/local/bin/python"
 ENV PYTHONPATH "${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-${PY4J_VERSION}-src.zip:${PYTHONPATH}"
-ENV SPARK_OPTS "--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info"
+ENV SPARK_OPTS "--driver-java-options=-Xms1024M --driver-java-options=-Xmx3072M --driver-java-options=-Dlog4j.logLevel=info"
 
 USER airflow
 # INSTALL YOUR OWN LIBS

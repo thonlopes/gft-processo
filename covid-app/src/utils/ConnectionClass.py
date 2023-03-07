@@ -1,9 +1,10 @@
 from pyspark.sql import SparkSession
 
-class ConnectionClass():
+class connectionClass():
     def spark_session_gft( self, appNameSpark,):
         try:
             spark = SparkSession.builder \
+                                    .master("local[1]")\
                                     .appName(appNameSpark) \
                                     .getOrCreate()
                                                         

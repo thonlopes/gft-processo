@@ -1,10 +1,10 @@
 
-from carga.ProcessaCovidRaw import ProcessaCovidRaw
-
+from carga.processaCovidRaw import processaCovidRaw
+from carga.processaCovidTrusted import processaCovidTrusted
 def startProcess():
     try:
         print("Carga de arquivos csv do site do governo.")
-        execute = ProcessaCovidRaw()
+        execute = processaCovidTrusted()
         execute.main()
 
     except Exception as e:

@@ -4,56 +4,51 @@ from pyspark.sql            import SparkSession
 from pyspark.sql.functions  import *
 from pyspark                import SparkFiles
 from datetime               import datetime, timedelta
-from utils.ConnectionClass  import *
-from utils.FunctionClass  import *
+from utils.connectionClass  import *
+from utils.functionClass  import *
 import requests
 
 
-class ProcessaCovidRaw():
+class processaCovidRaw():
         
        
         def __init__(self):
-                self.ConnectionClass = ConnectionClass()
-                self.FunctionClass   = FunctionClass()
+                self.connectionClass = connectionClass()
+                self.functionClass   = functionClass()
                         
         def main(self):
                 
                 ######### varias basicas de controle ###########
                 appNameSpark = "Carrega dados covid"
-                hdfsNode = "hdfs://hadoop-namenode:9000/gft/"
-                path_load = "covid/raw/"
+                hdfsNode = "hdfs://hadoop-namenode:9000/gft/covid/raw/"
                  ######### inicia a sessão no spark ###########
-                spark = self.ConnectionClass.spark_session_gft(appNameSpark)
+                spark = self.connectionClass.spark_session_gft(appNameSpark)
                 
                 dtFolderLoad = datetime.today() - timedelta(days=2)
                 dtFolderLoad = str(dtFolderLoad.strftime('%Y-%m-%d'))
                 
                 urlGov = 'https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/LEITOS/'
                 csvName = "esus-vepi.LeitoOcupacao_202"
-                qtsAnos = 1
+                anos = 1
+                header = True
+                delimiter = ","
+                encoding = "UTF-8"
                 
                 try:
-                        hdfsNode = "hdfs://hadoop-namenode:9000/gft/"
-                        path_save = "raw/covid/"
-
                         ## CARREGA TODOS OS ARQUIVOS E DATAFRAMES 
-                        for ano in range(qtsAnos):
-                                url  = str(urlGov) + dtFolderLoad +"/"+ csvName + str(ano) + ".csv"
+                        for ano in range(anos):
+                                urlFile  = str(urlGov) + dtFolderLoad +"/"+ csvName + str(ano) + ".csv"
                                 csvName = str(csvName + str(ano) + ".csv")
-                                if requests.get(url).status_code == 200:
-                                
-                                        print("O servidor está disponível." + url)  
-                                        spark.sparkContext.addFile(url)
-                                        df = spark.read.csv(SparkFiles.get(csvName),inferSchema=True, header=True,  sep =',',  multiLine=True)
-                                
-                                        # df = df.withColumn('dtFolderLoad', dtFolderLoad)
-                                        df = df.withColumn('dtLoadDate', current_date())
-
-                                        df.write.option("header", False)\
-                                                .mode("overwrite") \
-                                                .partitionBy("dtLoadDate")\
-                                                .csv(hdfsNode + path_load)
+                                if requests.get(urlFile).status_code == 200:
                                         
+                                        self.functionClass.import_csv(spark, 
+                                                                hdfsNode, 
+                                                                header, 
+                                                                delimiter, 
+                                                                encoding, 
+                                                                urlFile,
+                                                                csvName)
+                        
                                 else: 
                                         print("O servidor está indisponível.") 
                         spark.stop()

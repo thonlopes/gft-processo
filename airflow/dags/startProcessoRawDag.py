@@ -14,5 +14,5 @@ with airflow.DAG('CarregaDadosCovidRaw',
                  schedule_interval='@daily') as dag:
     dag_thon = BashOperator(
         task_id='sparkCovidRaw',
-        bash_command="python3 /covid-app/src/teste.py",
+        bash_command="python3 /covid-app/src/startProcesso.py",
     )

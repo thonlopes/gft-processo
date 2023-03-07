@@ -1,7 +1,5 @@
 FROM debian:9
 
-#Moving in PySpark/Hadoop test to the container(Write/Reading dataframe)
-COPY test.py /
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     openjdk-8-jdk \

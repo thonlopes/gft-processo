@@ -4,12 +4,24 @@ O objetivo desse ambiente é simular um processo de data lake, onde é feito a c
 Para iniciar os containers basta executar o comando 'make build' que carregara o arquivo na pasta docker
 
 ## Projeto desenvolvido para apresentar uma estrutura de data lake, onde foram utlizados os seguintes recursos:
-* postgres: 
-* Airflow:
-* jupyter:
-* Spark:
-* Hadoop HDFS:
-* Hadoop Yarn:
+* postgres: 10
+* Airflow:2.5.1
+* jupyter: 3.0.0
+* Spark: 3.0.0
+* Hadoop: 3.2.1
+
+### Hadoop
+Acesso Hadoop UI ' http://localhost:9870 '
+
+### Spark
+Acesso Spark Master UI ' http://localhost:8080 '
+
+### Jupyter
+Acesso Jupyter UI ' http://localhost:8888 '
+
+### Airflow
+Acesso Jupyter UI ' http://localhost:8280 '
+login e senha: airflow
 
 ## Árvore do diretório
         .

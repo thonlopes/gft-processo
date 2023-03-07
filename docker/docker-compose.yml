@@ -112,16 +112,16 @@ services:
     env_file:
       - ./hadoop/hadoop.env
 
-  hadoop-nodemanager-1:
-    container_name: hadoop-nodemanager-1
-    restart: always
-    build: ./hadoop/nodemanager
-    networks:
-     - bds-network
-    environment:
-      SERVICE_PRECONDITION: "hadoop-namenode:9000 hadoop-namenode:9870 hadoop-datanode:9864 hadoop-resourcemanager:8088"
-    env_file:
-      - ./hadoop/hadoop.env
+  # hadoop-nodemanager-1:
+  #   container_name: hadoop-nodemanager-1
+  #   restart: always
+  #   build: ./hadoop/nodemanager
+  #   networks:
+  #    - bds-network
+  #   environment:
+  #     SERVICE_PRECONDITION: "hadoop-namenode:9000 hadoop-namenode:9870 hadoop-datanode:9864 hadoop-resourcemanager:8088"
+  #   env_file:
+  #     - ./hadoop/hadoop.env
 
   ####### SPARK
   spark-master:
@@ -135,39 +135,39 @@ services:
     volumes:
       - shared-workspace:/opt/workspace
 
-  spark-worker-1:
-    build: ./spark/worker
-    container_name: spark-worker-1
-    environment:
-      - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=256m
-    ports:
-      - 8081:8081
-    networks:
-      - bds-network
-    volumes:
-      - shared-workspace:/opt/workspace
+  # spark-worker-1:
+  #   build: ./spark/worker
+  #   container_name: spark-worker-1
+  #   environment:
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_WORKER_MEMORY=256m
+  #   ports:
+  #     - 8081:8081
+  #   networks:
+  #     - bds-network
+  #   volumes:
+  #     - shared-workspace:/opt/workspace
   
-    depends_on:
-      - spark-master
+  #   depends_on:
+  #     - spark-master
 
-  spark-worker-2:
-    build: ./spark/worker
-    container_name: spark-worker-2
-    environment:
-      - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=256m
-    networks:
-      - bds-network
-    ports:
-      - 8082:8081
-    volumes:
-      - shared-workspace:/opt/workspace
+  # spark-worker-2:
+  #   build: ./spark/worker
+  #   container_name: spark-worker-2
+  #   environment:
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_WORKER_MEMORY=256m
+  #   networks:
+  #     - bds-network
+  #   ports:
+  #     - 8082:8081
+  #   volumes:
+  #     - shared-workspace:/opt/workspace
 
-    depends_on:
-      - spark-master
+  #   depends_on:
+  #     - spark-master
 
-####### JUPYTER
+# ####### JUPYTER
   jupyter-notebook:
     build: ./jupyter
     container_name: jupyter-notebook
