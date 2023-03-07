@@ -1,0 +1,43 @@
+name: DeployDev
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run a one-line script
+        run: echo Hello, world!
+        
+        
+  deploy-desenvolvimento:
+    runs-on: ubuntu-latest
+    environment: 
+      name: desenvolvimento
+      url: 'thonlopes.com' 
+    needs: build
+    steps: 
+      - name: Run a on-line script
+        run: echo Deploy Dev
+  
+  deploy-homologacao:
+    runs-on: ubuntu-latest
+    environment: 
+      name: homologacao
+      url: 'thonlopes.com' 
+    needs: deploy-desenvolvimento
+    steps: 
+      - name: Run a on-line script
+        run: echo Deploy Homologacao
+        
+  deploy-producao:
+    runs-on: ubuntu-latest
+    environment: 
+      name: producao
+      url: 'thonlopes.com' 
+    needs: deploy-homologacao
+    steps: 
+      - name: Run a on-line script
+        run: echo Deploy Producao
+        
+      
