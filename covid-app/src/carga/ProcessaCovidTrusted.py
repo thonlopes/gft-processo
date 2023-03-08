@@ -17,14 +17,15 @@ class processaCovidTrusted():
         def main(self):
                 
                 appNameSpark = 'Carrega dados covid Trusted'
-                hdfsNodeRaw = "hdfs://hadoop-namenode:9000/gft/covid/raw/"
-                hdfsNodeTrusted = "hdfs://hadoop-namenode:9000/gft/covid/trusted/"
+                hdfsNodeRaw = "hdfs://hadoop-namenode:9000/gft/raw/covid"
+                hdfsNodeTrusted = "hdfs://hadoop-namenode:9000/gft/trusted/covid/"
 
                 ######### inicia a sessão no spark ###########
                 spark = self.connectionClass.spark_session_gft(appNameSpark)
                 
                 try:
-                        schema = StructType([StructField('_c0', StringType(),True),
+                        schema = StructType([ \
+                                StructField('_c0', StringType(),True),
                                 StructField('_id', StringType(),True),
                                 StructField('dataNotificacao', StringType(),True),
                                 StructField('cnes', StringType(),True),
@@ -49,23 +50,19 @@ class processaCovidTrusted():
                                 StructField('excluido', StringType(),True),
                                 StructField('validado', StringType(),True),
                                 StructField('_created_at', StringType(),True),
-                                StructField('_updated_at', StringType(),True),
-                                StructField('dt_folder', DateType(),True)
-        
+                                StructField('_updated_at', StringType(),True)       
                         ])
                     
                         header = True
                         delimiter = ","
                         encoding = "UTF-8"
                         self.functionClass.save_parquet(spark, 
-                                                        hdfsNodeRaw, 
+                                                        hdfsNodeRaw,
+                                                        hdfsNodeTrusted, 
                                                         header, 
                                                         delimiter, 
                                                         encoding, 
-                                                        schema,
-                                                        nr_repartition=5,  
-                                                        dropDuplicate=True,
-                                                        have_dt_load=True)
+                                                        schema)
 
                 except Exception as e:
                         erro = str(e)

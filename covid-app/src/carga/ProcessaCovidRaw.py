@@ -20,7 +20,7 @@ class processaCovidRaw():
                 
                 ######### varias basicas de controle ###########
                 appNameSpark = "Carrega dados covid"
-                hdfsNode = "hdfs://hadoop-namenode:9000/gft/covid/raw/"
+                hdfsNode = "hdfs://hadoop-namenode:9000/gft/raw/covid"
                  ######### inicia a sessão no spark ###########
                 spark = self.connectionClass.spark_session_gft(appNameSpark)
                 
@@ -35,7 +35,7 @@ class processaCovidRaw():
                 encoding = "UTF-8"
                 
                 try:
-                        ## CARREGA TODOS OS ARQUIVOS E DATAFRAMES 
+                        ## Carrega a quantidade de anos selecionado na variavel, buscar dentro do diretorio da url goc e vê qual data esta disponivel 
                         for ano in range(anos):
                                 urlFile  = str(urlGov) + dtFolderLoad +"/"+ csvName + str(ano) + ".csv"
                                 csvName = str(csvName + str(ano) + ".csv")
@@ -51,7 +51,6 @@ class processaCovidRaw():
                         
                                 else: 
                                         print("O servidor está indisponível.") 
-                        spark.stop()
                 except Exception as e:
                         erro = str(e)
                         print(erro)

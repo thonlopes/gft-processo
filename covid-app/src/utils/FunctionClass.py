@@ -29,7 +29,8 @@ class functionClass():
         return
     
     def save_parquet(self, spark, hdfsNodeRaw,hdfsNodeTrusted, header, delimiter, encoding, schema,
-                  nr_repartition=2, dropDuplicate=True,have_dt_load=True):
+                  dropDuplicate=True,have_dt_load=True):
+        
         try:
             #Valor vindo da assinatura do método
             if have_dt_load:
@@ -72,15 +73,12 @@ class functionClass():
             # Insere dados na estrutura final
             df_resultado = df_final.union(df_duplicates)
             
-            df_resultado.repartition(nr_repartition)\
-                        .write\
-                        .mode('overwrite')\
+            df_resultado.write\
+                        .mode('append')\
                         .parquet(str(hdfsNodeTrusted))
                         
         except Exception as e:
             print(str(e))
-            #df_log = self.Log.closeProcessLogFail("Load do arquivo CSV", str(e), df_log)
-            #self.Log.salvar_log(df_log, self.Dados['caminho_log'])
             raise
         return
     

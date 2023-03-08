@@ -51,7 +51,7 @@ services:
   airflow-scheduler:
     image: airflow-base
     build:
-      dockerfile: Dockerfile
+      dockerfile: ./airflow/Dockerfile
       context: .
     command: scheduler
     networks:
@@ -101,16 +101,16 @@ services:
     env_file:
       - ./hadoop/hadoop.env
 
-  hadoop-resourcemanager:
-    container_name: hadoop-resourcemanager
-    restart: always
-    build: ./hadoop/resourcemanager
-    networks:
-     - bds-network
-    environment:
-      SERVICE_PRECONDITION: "hadoop-namenode:9000 hadoop-namenode:9870 hadoop-datanode:9864"
-    env_file:
-      - ./hadoop/hadoop.env
+  # hadoop-resourcemanager:
+  #   container_name: hadoop-resourcemanager
+  #   restart: always
+  #   build: ./hadoop/resourcemanager
+  #   networks:
+  #    - bds-network
+  #   environment:
+  #     SERVICE_PRECONDITION: "hadoop-namenode:9000 hadoop-namenode:9870 hadoop-datanode:9864"
+  #   env_file:
+  #     - ./hadoop/hadoop.env
 
   # hadoop-nodemanager-1:
   #   container_name: hadoop-nodemanager-1
@@ -183,7 +183,6 @@ volumes:
   airflow-local-db-volume:
   hadoop_namenode:
   hadoop_datanode:
-  hadoop_historyserver:
   shared-workspace:
     name: "hadoop-distributed-file-system"
     driver: local
