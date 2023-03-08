@@ -29,7 +29,7 @@ class processaCovidRaw():
                 
                 urlGov = 'https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/LEITOS/'
                 csvName = "esus-vepi.LeitoOcupacao_202"
-                anos = 1
+                anos = 3
                 header = True
                 delimiter = ","
                 encoding = "UTF-8"
@@ -47,6 +47,7 @@ class processaCovidRaw():
                                                                 delimiter, 
                                                                 encoding, 
                                                                 urlFile,
+                                                                dtFolderLoad,
                                                                 csvName)
                         
                                 else: 

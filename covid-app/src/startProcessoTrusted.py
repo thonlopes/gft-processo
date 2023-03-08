@@ -1,5 +1,4 @@
 
-from carga.processaCovidRaw import processaCovidRaw
 from carga.processaCovidTrusted import processaCovidTrusted
 def startProcess():
     try:

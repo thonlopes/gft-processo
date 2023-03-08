@@ -1,12 +1,14 @@
+import os
 from pyspark.sql.types      import *
+from pyspark.sql            import SparkSession 
 from pyspark.sql.functions  import *
-from pyspark                import SparkFiles
+from datetime               import datetime, timedelta
 
 
 
 class functionClass():
     
-    def import_csv(self, spark, hdfsNode, header, delimiter, encoding, urlFile,csvName):
+    def import_csv(self, spark, hdfsNode, header, delimiter, encoding, urlFile,dtFolderLoad,csvName):
 
         try:
              print("O servidor está disponível." + urlFile)  
@@ -14,7 +16,7 @@ class functionClass():
              spark.sparkContext.addFile(urlFile)
              df = spark.read.csv(SparkFiles.get(csvName),inferSchema=True, header=header, sep =delimiter,  multiLine=True)                                        # df = spark.read.csv(SparkFiles.get(csvName),inferSchema=True, header=True,  sep =',',  multiLine=True)
     
-             df = df.withColumn('dt_load_date', lit(current_timestamp()))
+             df = df.withColumn('dt_load_date', lit(dtFolderLoad))
              df = df.withColumn('dt_insert', lit(current_timestamp()))
         
              df.write.option("header",True)\
@@ -28,7 +30,7 @@ class functionClass():
                     raise
         return
     
-    def save_parquet(self, spark, hdfsNodeRaw,hdfsNodeTrusted, header, delimiter, encoding, schema,
+    def save_parquet(self, spark, hdfsNodeRaw,hdfsNodeTrusted, header, delimiter, encoding, schema,campos,
                   dropDuplicate=True,have_dt_load=True):
         
         try:
@@ -60,9 +62,9 @@ class functionClass():
                 df_duplicates = df.withColumn('dt_load_date', lit(current_timestamp()))
             df_duplicates = df_duplicates.withColumn('dt_insert', lit(current_timestamp()))
 
-
-            ## Cria DF vazio, na estrutura e nomenclatura dos campos da analysis
+                ## Cria DF vazio, na estrutura e nomenclatura dos campos da analysis
             df_final = spark.createDataFrame(spark.sparkContext.emptyRDD(),schema)
+         
 
             df_final = df_final\
                 .withColumn('id_hash',lit(None).cast(StringType()))\
@@ -82,6 +84,29 @@ class functionClass():
             raise
         return
     
+    def save_parquet_refined( self, spark, hdfsNodeTrusted, hdfsNodeRefined, header, delimiter):
+        
+        try:
+            
+            df = spark.read\
+                .option('header', header)\
+                .option('delimiter', delimiter)\
+                .option("escape", "\"")\
+                .parquet(str(hdfsNodeTrusted))
+                    
+            df_resultado = self.listLoadsSelect(df)           
+            df_resultado = df_resultado.withColumn('id_hash', sha2(concat_ws('|', *df.columns), 256))
+            df_resultado = df.withColumn('dt_insert', lit(current_timestamp()))
+            
+            df_resultado.write\
+                        .mode('append')\
+                        .parquet(str(hdfsNodeRefined))
+                        
+        except Exception as e:
+            print(str(e))
+            raise
+        return
+      
     def listDtLoads(self, delimiterIngress, pthRaw, spark):
         dfData = spark.read\
             .option('header', False)\
@@ -94,3 +119,31 @@ class functionClass():
             vData = None
 
         return vData
+    
+    
+    def listLoadsSelect(self, df):
+       
+        df_result =  df.withColumn('ID', col('_id').cast(StringType()))\
+                    .withColumn('DT_NOTIFICACAO', col('dataNotificacao').cast(StringType()))\
+                    .withColumn('CNES', col('cnes').cast(StringType()))\
+                    .withColumn('OC_SUSPEITA_CLI', col('ocupacaoSuspeitoCli').cast(IntegerType()))\
+                    .withColumn('OC_SUSPEITA_UTI', col('ocupacaoSuspeitoUti').cast(IntegerType()))\
+                    .withColumn('OC_CONFIRMADA_CLI', col('ocupacaoConfirmadoCli').cast(IntegerType()))\
+                    .withColumn('OC_CONFIRAMDA_UTI', col('ocupacaoConfirmadoUti').cast(IntegerType()))\
+                    .withColumn('OC_COVID_CLI', col('ocupacaoCovidCli').cast(IntegerType()))\
+                    .withColumn('OC_COVID_UTI', col('ocupacaoCovidUti').cast(IntegerType()))\
+                    .withColumn('OC_HOSPITALAR_CLI', col('ocupacaoHospitalarCli').cast(IntegerType()))\
+                    .withColumn('OC_HOSPITALAR_UTI', col('ocupacaoHospitalarUti').cast(IntegerType()))\
+                    .withColumn('SD_SUSPEITA_OBITOS', col('saidaSuspeitaObitos').cast(IntegerType()))\
+                    .withColumn('SD_SUSPEITA_ALTAS', col('saidaSuspeitaAltas').cast(IntegerType()))\
+                    .withColumn('SD_CONFIRMADA_OBITOS', col('saidaConfirmadaObitos').cast(IntegerType()))\
+                    .withColumn('SD_CONFIRMADA_ALTAS', col('saidaConfirmadaAltas').cast(IntegerType()))\
+                    .withColumn('ORIGEM', col('origem').cast(StringType()))\
+                    .withColumn('CD_USUARIO', col('_p_usuario').cast(StringType()))\
+                    .withColumn('UF', col('estado').cast(StringType()))\
+                    .withColumn('MUNICIPIO', col('municipio').cast(StringType()))\
+                    .withColumn('dt_load_date', col('dt_load_date').cast(StringType()))
+
+        return df_result
+    
+    

@@ -1,6 +1,5 @@
 
 from carga.processaCovidRaw import processaCovidRaw
-from carga.processaCovidTrusted import processaCovidTrusted
 def startProcess():
     try:
         print("Carga de arquivos csv do site do governo.")

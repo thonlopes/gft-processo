@@ -102,3 +102,6 @@ login e senha: airflow
       ** startProcesso.py - Responsável por exeuctar o processo de ponta a ponta, fazendo as chamadas as funcções na pasta carga.
 
       * src-teste: raiz dos arquivos de teste
+
+### Documento de apoio aos dados 
+

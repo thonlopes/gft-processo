@@ -2,11 +2,9 @@ import os
 from pyspark.sql.types      import *
 from pyspark.sql            import SparkSession 
 from pyspark.sql.functions  import *
-from pyspark                import SparkFiles
 from datetime               import datetime, timedelta
 from utils.connectionClass  import *
 from utils.functionClass  import *
-import requests
 
 class processaCovidTrusted():
                 
@@ -56,13 +54,15 @@ class processaCovidTrusted():
                         header = True
                         delimiter = ","
                         encoding = "UTF-8"
+                        campos = ""
                         self.functionClass.save_parquet(spark, 
                                                         hdfsNodeRaw,
                                                         hdfsNodeTrusted, 
                                                         header, 
                                                         delimiter, 
                                                         encoding, 
-                                                        schema)
+                                                        schema,
+                                                        campos)
 
                 except Exception as e:
                         erro = str(e)
